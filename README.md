@@ -19,12 +19,14 @@ Telegram Bot (Confirmation Message)
 ## 🚀 Features
 
 1.  **Join Reward**: Automatically rewards users when they join the group.
-    *   Default Event ID: `telegram_join`
-    *   **Admin Config**: `/config_join <event_id>`
+    *   **Setup Required**: Create event in Partner Portal with "Telegram Bot Interaction" detection
+    *   **Admin Config**: `/config_join <event_id>` (use the generated event ID from Partner Portal)
 2.  **Daily Check-in**: Users can type `/checkin` once every 24 hours.
-    *   Default Event ID: `daily_checkin`
-    *   **Admin Config**: `/config_checkin <event_id>`
+    *   **Setup Required**: Create event in Partner Portal with "Telegram Bot Interaction" detection
+    *   **Admin Config**: `/config_checkin <event_id>` (use the generated event ID from Partner Portal)
 3.  **Balance Check**: `/balance` links users to `perks.loyalteez.app`.
+
+> ⚠️ **Important**: You must create custom events in the Partner Portal first, then configure the bot with the generated event IDs. Default event IDs (`telegram_join`, `daily_checkin`) will not work unless you create events with those exact names.
 
 ## 🛠 Setup & Deployment
 

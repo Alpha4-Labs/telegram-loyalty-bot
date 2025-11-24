@@ -19,7 +19,7 @@ service = "loyalteez-pregeneration"
 [vars]
 # Required: Your Loyalteez Brand Address (0x...)
 # Get this from Partner Portal → Settings → Account Overview
-BRAND_ID = "your-brand-address"
+BRAND_ID = "0xf8964eB6D654659a4935363595db1095474Be22F"
 
 # Optional: API URL (defaults to production)
 LOYALTEEZ_API_URL = "https://api.loyalteez.app"

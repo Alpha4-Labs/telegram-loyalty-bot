@@ -85,17 +85,25 @@ async function handleMessage(message, env) {
   // EVENT: User Joined Group
   // --------------------------------------------
   if (message.new_chat_members) {
-    // Get configured join event ID or default
-    let joinEventId = "telegram_join";
+    // Get configured join event ID (required - no default)
+    let joinEventId = null;
     if (env.TELEGRAM_BOT_KV) {
-      const storedId = await env.TELEGRAM_BOT_KV.get(`JOIN_EVENT_ID:${chatId}`);
-      if (storedId) joinEventId = storedId;
+      joinEventId = await env.TELEGRAM_BOT_KV.get(`JOIN_EVENT_ID:${chatId}`);
+    }
+
+    if (!joinEventId) {
+      await sendMessage(env, chatId, `⚠️ Join reward not configured. Admin: Use /config_join <event_id> to set up.`);
+      return;
     }
 
     for (const member of message.new_chat_members) {
       if (!member.is_bot) {
-        await triggerReward(env, joinEventId, member, chatId);
-        await sendMessage(env, chatId, `Welcome ${member.first_name}! You've earned LTZ tokens for joining.`);
+        const result = await triggerReward(env, joinEventId, member, chatId);
+        if (result.success) {
+          await sendMessage(env, chatId, `Welcome ${member.first_name}! You've earned ${result.ltzDistributed || 'LTZ'} tokens for joining.`);
+        } else {
+          await sendMessage(env, chatId, `Welcome ${member.first_name}! (Reward processing...)`);
+        }
       }
     }
     return;
@@ -105,23 +113,27 @@ async function handleMessage(message, env) {
   // COMMAND: /checkin (Daily Reward)
   // --------------------------------------------
   if (text.startsWith("/checkin")) {
-    // Get configured checkin event ID or default
-    let checkinEventId = "daily_checkin";
+    // Get configured checkin event ID (required - no default)
+    let checkinEventId = null;
     if (env.TELEGRAM_BOT_KV) {
-      const storedId = await env.TELEGRAM_BOT_KV.get(`CHECKIN_EVENT_ID:${chatId}`);
-      if (storedId) checkinEventId = storedId;
+      checkinEventId = await env.TELEGRAM_BOT_KV.get(`CHECKIN_EVENT_ID:${chatId}`);
+    }
+
+    if (!checkinEventId) {
+      await sendMessage(env, chatId, `⚠️ Daily check-in not configured. Admin: Use /config_checkin <event_id> to set up.\n\nCreate an event in Partner Portal with "Telegram Bot Interaction" detection, then use the generated event ID.`);
+      return;
     }
 
     const result = await triggerReward(env, checkinEventId, user, chatId);
     
     if (result.success) {
-      await sendMessage(env, chatId, `✅ Daily check-in complete! ${result.ltzDistributed || 10} LTZ sent to your wallet.`);
+      await sendMessage(env, chatId, `✅ Daily check-in complete! ${result.ltzDistributed || result.rewardAmount || 'LTZ'} sent to your wallet.`);
     } else {
       // Handle cooldowns or errors
       if (result.error?.includes("cooldown")) {
          await sendMessage(env, chatId, `⏳ You've already checked in today. Come back tomorrow!`);
-      } else if (result.error?.includes("not found")) {
-         await sendMessage(env, chatId, `❌ Check-in event (${checkinEventId}) not configured or inactive.`);
+      } else if (result.error?.includes("not found") || result.error?.includes("Invalid event")) {
+         await sendMessage(env, chatId, `❌ Event "${checkinEventId}" not found or inactive. Admin: Verify the event ID in Partner Portal.`);
       } else {
          await sendMessage(env, chatId, `❌ Check-in failed: ${result.error || "Unknown error"}`);
       }
@@ -191,7 +203,7 @@ async function handleMessage(message, env) {
   // COMMAND: /start
   // --------------------------------------------
   if (text.startsWith("/start")) {
-    await sendMessage(env, chatId, `👋 Welcome to the community loyalty bot!\n\nCommands:\n/checkin - Earn daily points\n/balance - Check your balance\n\nAdmins:\n/config_checkin <id> - Set daily event\n/config_join <id> - Set join event`);
+    await sendMessage(env, chatId, `👋 Welcome to the community loyalty bot!\n\nCommands:\n/checkin - Earn daily points\n/balance - Check your balance\n\nAdmins:\n/config_checkin <event_id> - Set daily event ID\n/config_join <event_id> - Set join event ID\n\n📖 Setup: Create events in Partner Portal with "Telegram Bot Interaction" detection, then configure the bot with the generated event IDs.`);
     return;
   }
 }
