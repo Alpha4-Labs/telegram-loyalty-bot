@@ -2,6 +2,11 @@ name = "telegram-loyalty-bot"
 main = "src/index.js"
 compatibility_date = "2023-10-30"
 
+# Custom domain configuration
+[[routes]]
+pattern = "telegram-demo.loyalteez.app/*"
+zone_name = "loyalteez.app"
+
 [vars]
 # Configuration
 BRAND_ID = "your-brand-address" # Replace with your Brand Address (0x...)

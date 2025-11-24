@@ -11,13 +11,35 @@
 
 export default {
   async fetch(request, env, ctx) {
-    // Only accept POST requests (webhooks)
+    const url = new URL(request.url);
+    
+    // Health check endpoint (for testing)
+    if (request.method === "GET" && url.pathname === "/health") {
+      return new Response(
+        JSON.stringify({
+          status: "healthy",
+          service: "telegram-loyalty-bot",
+          timestamp: new Date().toISOString(),
+          config: {
+            brandId: env.BRAND_ID ? "configured" : "missing",
+            apiUrl: env.LOYALTEEZ_API_URL || "https://api.loyalteez.app",
+            kvConfigured: !!env.TELEGRAM_BOT_KV,
+            tokenConfigured: !!env.TELEGRAM_BOT_TOKEN
+          }
+        }),
+        {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        }
+      );
+    }
+
+    // Only accept POST requests for webhooks
     if (request.method !== "POST") {
       return new Response("Method not allowed", { status: 405 });
     }
 
     // Verify secret token if configured (security best practice)
-    const url = new URL(request.url);
     if (env.WEBHOOK_SECRET && url.searchParams.get("secret") !== env.WEBHOOK_SECRET) {
       return new Response("Unauthorized", { status: 401 });
     }
@@ -31,7 +53,10 @@ export default {
       return new Response("OK", { status: 200 });
     } catch (e) {
       console.error("Error processing update:", e);
-      return new Response("Error", { status: 500 });
+      return new Response(
+        JSON.stringify({ error: "Internal server error", message: e.message }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      );
     }
   },
 };
