@@ -112,6 +112,15 @@ npx wrangler kv:namespace create TELEGRAM_BOT_KV
 
 # 5. Deploy
 npm run deploy
+
+# 6. Create events in Partner Portal:
+#    - Go to Settings → Events
+#    - Create event with "Telegram Bot Interaction" detection
+#    - Copy the generated event ID (e.g., custom_474Be22F_1763993407388)
+
+# 7. Configure bot in Telegram:
+#    - As admin, run: /config_checkin <event_id>
+#    - As admin, run: /config_join <event_id>
 ```
 
 ---

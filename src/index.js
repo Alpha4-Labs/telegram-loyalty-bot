@@ -160,14 +160,23 @@ async function handleMessage(message, env) {
 
     const parts = text.split(" ");
     if (parts.length < 2) {
-      await sendMessage(env, chatId, "❌ Usage: /config_checkin <event_id>");
+      await sendMessage(env, chatId, "❌ Usage: /config_checkin <event_id_or_friendly_name>\n\nYou can use:\n- Custom event ID: <code>custom_4748e22F_1763993617509</code>\n- Friendly name: <code>daily_checkin</code>");
       return;
     }
 
-    const eventId = parts[1];
+    const inputName = parts[1];
+    
+    // Resolve friendly name to custom event ID if needed
+    const resolvedEventId = await resolveEventId(env, inputName);
+    
     if (env.TELEGRAM_BOT_KV) {
-      await env.TELEGRAM_BOT_KV.put(`CHECKIN_EVENT_ID:${chatId}`, eventId);
-      await sendMessage(env, chatId, `✅ Daily check-in event updated to: <code>${eventId}</code>`);
+      await env.TELEGRAM_BOT_KV.put(`CHECKIN_EVENT_ID:${chatId}`, resolvedEventId);
+      
+      if (resolvedEventId !== inputName) {
+        await sendMessage(env, chatId, `✅ Daily check-in event configured!\n\nFriendly name: <code>${escapeHtml(inputName)}</code>\nMaps to: <code>${escapeHtml(resolvedEventId)}</code>`);
+      } else {
+        await sendMessage(env, chatId, `✅ Daily check-in event updated to: <code>${escapeHtml(resolvedEventId)}</code>`);
+      }
     } else {
       await sendMessage(env, chatId, "❌ KV Storage not configured. Cannot save settings.");
     }
@@ -185,14 +194,23 @@ async function handleMessage(message, env) {
 
     const parts = text.split(" ");
     if (parts.length < 2) {
-      await sendMessage(env, chatId, "❌ Usage: /config_join <event_id>");
+      await sendMessage(env, chatId, "❌ Usage: /config_join <event_id_or_friendly_name>\n\nYou can use:\n- Custom event ID: <code>custom_4748e22F_1763993617509</code>\n- Friendly name: <code>telegram_join</code>");
       return;
     }
 
-    const eventId = parts[1];
+    const inputName = parts[1];
+    
+    // Resolve friendly name to custom event ID if needed
+    const resolvedEventId = await resolveEventId(env, inputName);
+    
     if (env.TELEGRAM_BOT_KV) {
-      await env.TELEGRAM_BOT_KV.put(`JOIN_EVENT_ID:${chatId}`, eventId);
-      await sendMessage(env, chatId, `✅ Join event updated to: <code>${eventId}</code>`);
+      await env.TELEGRAM_BOT_KV.put(`JOIN_EVENT_ID:${chatId}`, resolvedEventId);
+      
+      if (resolvedEventId !== inputName) {
+        await sendMessage(env, chatId, `✅ Join event configured!\n\nFriendly name: <code>${escapeHtml(inputName)}</code>\nMaps to: <code>${escapeHtml(resolvedEventId)}</code>`);
+      } else {
+        await sendMessage(env, chatId, `✅ Join event updated to: <code>${escapeHtml(resolvedEventId)}</code>`);
+      }
     } else {
       await sendMessage(env, chatId, "❌ KV Storage not configured. Cannot save settings.");
     }
@@ -233,6 +251,30 @@ async function isAdmin(env, chatId, userId) {
 }
 
 /**
+ * Get bot username from Telegram API (cached)
+ */
+let cachedBotUsername = null;
+async function getBotUsername(env) {
+  if (cachedBotUsername) return cachedBotUsername;
+  
+  const token = env.TELEGRAM_BOT_TOKEN;
+  if (!token) return null;
+  
+  try {
+    const url = `https://api.telegram.org/bot${token}/getMe`;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.ok && data.result.username) {
+      cachedBotUsername = `@${data.result.username}`;
+      return cachedBotUsername;
+    }
+  } catch (e) {
+    console.error("Failed to get bot username:", e);
+  }
+  return null;
+}
+
+/**
  * Call Loyalteez API to distribute reward
  * Uses Service Bindings if available (faster, no 522 errors)
  */
@@ -243,6 +285,9 @@ async function triggerReward(env, eventType, user, chatId) {
   }
 
   const userEmail = `telegram_${user.id}@loyalteez.app`;
+  
+  // Get bot username for authentication
+  const botUsername = await getBotUsername(env);
   
   // Use LoyalteezClient with service bindings if available
   const loyalteez = new LoyalteezClient(
@@ -257,7 +302,8 @@ async function triggerReward(env, eventType, user, chatId) {
       username: user.username,
       first_name: user.first_name,
       last_name: user.last_name,
-      chat_id: chatId
+      chat_id: chatId,
+      bot_username: botUsername  // Include bot username for authentication
     });
 
     return result;
@@ -267,6 +313,79 @@ async function triggerReward(env, eventType, user, chatId) {
       success: false, 
       error: error.message || "Failed to process reward" 
     };
+  }
+}
+
+/**
+ * Escape HTML entities for Telegram HTML parse mode
+ */
+function escapeHtml(text) {
+  if (!text) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * Resolve friendly event name to custom event ID
+ * Queries event configs to find custom events with matching friendly name
+ */
+async function resolveEventId(env, friendlyName) {
+  // If it already looks like a custom event ID, return as-is
+  if (friendlyName.startsWith('custom_')) {
+    return friendlyName;
+  }
+
+  // If no brand ID, can't resolve
+  if (!env.BRAND_ID) {
+    return friendlyName;
+  }
+
+  try {
+    // Query event configs endpoint to get all events for this brand
+    const apiUrl = env.LOYALTEEZ_API_URL || 'https://api.loyalteez.app';
+    const configUrl = `${apiUrl}/loyalteez-api/event-config?brandId=${encodeURIComponent(env.BRAND_ID)}`;
+    
+    const response = await fetch(configUrl, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      console.warn('Failed to fetch event configs for name resolution:', response.status);
+      return friendlyName; // Fallback to original name
+    }
+
+    const data = await response.json();
+    const configs = data.events || [];
+    
+    console.log(`Resolving friendly name "${friendlyName}" from ${configs.length} events`);
+    
+    // Look for event where eventNameMapping matches our friendly name
+    // eventNameMapping stores the friendly name that maps TO this event's eventType
+    for (const config of configs) {
+      // If eventNameMapping matches, this event accepts the friendly name
+      if (config.eventNameMapping === friendlyName) {
+        console.log(`Found mapping: "${friendlyName}" → "${config.eventId || config.eventType}"`);
+        return config.eventId || config.eventType;
+      }
+      
+      // Also check if eventType itself matches (for backwards compatibility)
+      if (config.eventType === friendlyName) {
+        console.log(`Found direct match: "${friendlyName}"`);
+        return config.eventId || config.eventType;
+      }
+    }
+    
+    console.log(`No mapping found for "${friendlyName}", using as-is`);
+    // Not found, return original (will fail gracefully with proper error message)
+    return friendlyName;
+  } catch (error) {
+    console.error('Error resolving event name:', error);
+    return friendlyName; // Fallback to original name
   }
 }
 

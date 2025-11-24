@@ -133,11 +133,11 @@ export class LoyalteezClient {
       brandId: this.brandId,
       eventType,
       userEmail,
-      domain: 'telegram.loyalteez.app',
+      domain: 'telegram',  // Use 'telegram' for platform-based auth (not domain-based)
       metadata: {
         platform: 'telegram',
         timestamp: new Date().toISOString(),
-        ...metadata
+        ...metadata  // Includes bot_username for authentication
       }
     };
 
