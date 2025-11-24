@@ -54,11 +54,26 @@ npm run deploy
 ```
 
 ### 5. Set Webhook
-After deploying, you get a worker URL (e.g., `https://telegram-loyalty-bot.your-name.workers.dev`). You must tell Telegram to send events there.
+After deploying, configure Telegram to send events to your worker.
 
-Run this in your browser or terminal:
+**Using the custom domain** (recommended):
 ```bash
-curl -F "url=https://your-worker-url.workers.dev" https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook
+curl -F "url=https://telegram-demo.loyalteez.app" https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook
+```
+
+**Or using the worker URL**:
+```bash
+curl -F "url=https://telegram-loyalty-bot.your-name.workers.dev" https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook
+```
+
+**With webhook secret** (if you set `WEBHOOK_SECRET`):
+```bash
+curl -F "url=https://telegram-demo.loyalteez.app?secret=YOUR_SECRET" https://api.telegram.org/bot<YOUR_BOT_TOKEN>/setWebhook
+```
+
+**Verify webhook is set**:
+```bash
+curl https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo
 ```
 
 ## 🧪 Testing

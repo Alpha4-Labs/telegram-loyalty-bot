@@ -9,6 +9,8 @@
  * - Check balance link (/balance)
  */
 
+import { LoyalteezClient } from './utils/loyalteez.js';
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -220,6 +222,7 @@ async function isAdmin(env, chatId, userId) {
 
 /**
  * Call Loyalteez API to distribute reward
+ * Uses Service Bindings if available (faster, no 522 errors)
  */
 async function triggerReward(env, eventType, user, chatId) {
   if (!env.BRAND_ID) {
@@ -227,47 +230,31 @@ async function triggerReward(env, eventType, user, chatId) {
     return { success: false, error: "Bot configuration error" };
   }
 
-  const endpoint = `${env.LOYALTEEZ_API_URL || "https://api.loyalteez.app"}/loyalteez-api/manual-event`;
-  
   const userEmail = `telegram_${user.id}@loyalteez.app`;
   
-  const payload = {
-    brandId: env.BRAND_ID,
-    eventType: eventType,
-    userEmail: userEmail,
-    domain: "telegram",
-    metadata: {
-      platform: "telegram",
+  // Use LoyalteezClient with service bindings if available
+  const loyalteez = new LoyalteezClient(
+    env.BRAND_ID,
+    env.LOYALTEEZ_API_URL,
+    env.EVENT_HANDLER,  // Service binding if configured
+    env.PREGENERATION   // Service binding if configured
+  );
+
+  try {
+    const result = await loyalteez.sendEvent(eventType, userEmail, {
       username: user.username,
       first_name: user.first_name,
       last_name: user.last_name,
-      chat_id: chatId,
-      timestamp: new Date().toISOString()
-    }
-  };
-
-  console.log(`🚀 Triggering reward: ${eventType} for ${userEmail}`);
-
-  try {
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload)
+      chat_id: chatId
     });
 
-    const data = await response.json();
-    
-    if (!response.ok) {
-      console.error("API Error:", data);
-      return { success: false, error: data.error || "API call failed" };
-    }
-
-    return data;
+    return result;
   } catch (error) {
-    console.error("Network Error:", error);
-    return { success: false, error: error.message };
+    console.error("Reward Error:", error);
+    return { 
+      success: false, 
+      error: error.message || "Failed to process reward" 
+    };
   }
 }
 

@@ -7,15 +7,14 @@ compatibility_date = "2023-10-30"
 pattern = "telegram-demo.loyalteez.app/*"
 zone_name = "loyalteez.app"
 
-# Optional: Service bindings for faster worker-to-worker communication (avoids 522 timeouts)
-# Uncomment these if you have access to the Loyalteez event-handler and pregeneration workers
-# [[services]]
-# binding = "EVENT_HANDLER"
-# service = "loyalteez-event-handler"
-#
-# [[services]]
-# binding = "PREGENERATION"
-# service = "loyalteez-pregeneration"
+# Service bindings for faster worker-to-worker communication (avoids 522 timeouts)
+[[services]]
+binding = "EVENT_HANDLER"
+service = "loyalteez-event-handler"
+
+[[services]]
+binding = "PREGENERATION"
+service = "loyalteez-pregeneration"
 
 [vars]
 # Required: Your Loyalteez Brand Address (0x...)
@@ -34,9 +33,7 @@ WELCOME_MESSAGE = "Welcome to the community! You've earned LTZ tokens."
 # See CONFIGURATION.md for details
 
 # KV Namespace for configuration persistence
-# Run: npx wrangler kv:namespace create TELEGRAM_BOT_KV
-# Then update the ID below
 [[kv_namespaces]]
 binding = "TELEGRAM_BOT_KV"
-id = "e402f2939316466b973a644181686222" # Replace with your KV Namespace ID
-preview_id = "e402f2939316466b973a644181686222"
+id = "0580646cd23848b8953d2e7fab82fad3"
+preview_id = "c82762f53ee44fc3a509ac929f4aeece"
