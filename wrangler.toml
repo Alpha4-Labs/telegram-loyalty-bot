@@ -1,0 +1,20 @@
+name = "telegram-loyalty-bot"
+main = "src/index.js"
+compatibility_date = "2023-10-30"
+
+[vars]
+# Configuration
+BRAND_ID = "your-brand-address" # Replace with your Brand Address (0x...)
+LOYALTEEZ_API_URL = "https://api.loyalteez.app"
+# Optional: Customize messages
+WELCOME_MESSAGE = "Welcome to the community! You've earned LTZ tokens."
+
+# Secrets (Set these via `wrangler secret put NAME`)
+# TELEGRAM_BOT_TOKEN = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
+# WEBHOOK_SECRET = "optional-secret-to-verify-requests"
+
+# KV Namespace for configuration (Run `npx wrangler kv:namespace create TELEGRAM_BOT_KV` to generate ID)
+[[kv_namespaces]]
+binding = "TELEGRAM_BOT_KV"
+id = "e402f2939316466b973a644181686222" # Replace with your KV Namespace ID
+preview_id = "e402f2939316466b973a644181686222"
