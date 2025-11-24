@@ -1,16 +1,39 @@
 {
   "name": "telegram-loyalty-bot",
   "version": "1.0.0",
-  "description": "A Cloudflare Worker that rewards Telegram community members with LTZ tokens.",
+  "description": "A Cloudflare Worker that integrates Telegram communities with Loyalteez rewards platform",
   "main": "src/index.js",
+  "type": "module",
   "scripts": {
     "deploy": "wrangler deploy",
-    "dev": "wrangler dev"
+    "dev": "wrangler dev",
+    "tail": "wrangler tail"
   },
+  "keywords": [
+    "telegram",
+    "bot",
+    "loyalty",
+    "rewards",
+    "cloudflare-workers",
+    "loyalteez",
+    "web3",
+    "blockchain"
+  ],
   "author": "Loyalteez",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Alpha4-Labs/telegram-loyalty-bot.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Alpha4-Labs/telegram-loyalty-bot/issues"
+  },
+  "homepage": "https://github.com/Alpha4-Labs/telegram-loyalty-bot#readme",
   "devDependencies": {
     "wrangler": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
 

@@ -1,12 +1,18 @@
 /**
  * Telegram Loyalty Bot
- * Integrates Telegram community activity with Loyalteez rewards.
+ * 
+ * A Cloudflare Worker that integrates Telegram communities with the Loyalteez rewards platform.
+ * Rewards community members with LTZ tokens for joining groups and daily check-ins.
  * 
  * Features:
- * - Reward new joins (telegram_join)
- * - Reward daily check-ins (/checkin)
- * - Configurable event IDs via admin commands
- * - Check balance link (/balance)
+ * - Automatic join rewards (configurable per chat)
+ * - Daily check-in rewards (/checkin command)
+ * - Admin configuration via /config_checkin and /config_join
+ * - Friendly name resolution (daily_checkin → custom event ID)
+ * - Bot username authentication (platform-based security)
+ * - Service bindings for fast worker-to-worker communication
+ * 
+ * @see https://github.com/Alpha4-Labs/telegram-loyalty-bot
  */
 
 import { LoyalteezClient } from './utils/loyalteez.js';
