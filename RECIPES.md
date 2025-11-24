@@ -88,24 +88,30 @@ During a voice chat or AMA, you say "The secret word is Purple Elephant". First 
 
 ---
 
-## Level 5: Telegram Mini App (Expert)
-**Best for:** Full shopping experience, wallet management, advanced interaction.
+## Level 5: Passive Tracking (Expert)
+**Best for:** "Reward for every 100 messages", "Reputation Systems", "Sentiment Analysis".
 
-Telegram allows you to run web apps *inside* Telegram. You can embed the Loyalteez Marketplace directly.
+**The Challenge**: This bot runs on Cloudflare Workers (Serverless). It sleeps when not in use and cannot "watch" a chat 24/7 cheaply or efficiently for high-volume groups.
 
-### Steps
-1.  **BotFather Setup**:
-    *   Message @BotFather.
-    *   Send `/newapp`.
-    *   Select your bot.
-    *   **Web App URL**: `https://perks.loyalteez.app` (or your whitelisted domain).
-    *   **Short Name**: `shop`.
-2.  **Menu Button**:
-    *   Send `/setmenubutton`.
-    *   Select your bot.
-    *   Url: `https://perks.loyalteez.app`.
-    *   Title: "Perk Shop".
-3.  **Result**: Users see a "Perk Shop" button next to their text input. Clicking it opens your Rewards Marketplace instantly within Telegram, authenticated and ready to spend points.
+### Solution: The Gateway Pattern
+To track every single message for a "Leveling System", use a dedicated Gateway.
+
+1.  **Deploy a Polling Bot**: Run a simple Node.js/Python bot on a VPS (e.g., Railway, DigitalOcean).
+2.  **Listen**: Use `node-telegram-bot-api` to listen to `message` events.
+3.  **Filter & Count**: Store counts in a local Redis/DB.
+4.  **Trigger**: When a user crosses a threshold (e.g., 100 messages), call the Loyalteez API.
+
+```javascript
+// Conceptual Node.js Example
+bot.on('message', async (msg) => {
+  const count = await db.incr(`msg_count:${msg.from.id}`);
+  if (count === 100) {
+     // Call Loyalteez API for 'level_up_1' event
+     await loyalteezApi.sendEvent('level_up_1', `telegram_${msg.from.id}@loyalteez.app`);
+     bot.sendMessage(msg.chat.id, "💯 Level Up! You earned 100 LTZ.");
+  }
+});
+```
 
 ---
 
