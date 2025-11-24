@@ -355,33 +355,38 @@ async function resolveEventId(env, friendlyName) {
     });
 
     if (!response.ok) {
-      console.warn('Failed to fetch event configs for name resolution:', response.status);
-      return friendlyName; // Fallback to original name
+      if (response.status === 522) {
+        console.warn(`⚠️ Event config API timeout (522) for "${friendlyName}". This might be a temporary issue. Using friendly name as-is - event-handler will handle resolution.`);
+      } else {
+        console.warn(`⚠️ Failed to fetch event configs for name resolution: ${response.status}. Using friendly name as-is.`);
+      }
+      return friendlyName; // Fallback to original name - event-handler can resolve it
     }
 
     const data = await response.json();
     const configs = data.events || [];
     
-    console.log(`Resolving friendly name "${friendlyName}" from ${configs.length} events`);
+    console.log(`🔍 Resolving friendly name "${friendlyName}" from ${configs.length} events`);
     
     // Look for event where eventNameMapping matches our friendly name
     // eventNameMapping stores the friendly name that maps TO this event's eventType
     for (const config of configs) {
       // If eventNameMapping matches, this event accepts the friendly name
       if (config.eventNameMapping === friendlyName) {
-        console.log(`Found mapping: "${friendlyName}" → "${config.eventId || config.eventType}"`);
-        return config.eventId || config.eventType;
+        const resolvedId = config.eventId || config.eventType;
+        console.log(`✅ Found mapping: "${friendlyName}" → "${resolvedId}"`);
+        return resolvedId;
       }
       
       // Also check if eventType itself matches (for backwards compatibility)
       if (config.eventType === friendlyName) {
-        console.log(`Found direct match: "${friendlyName}"`);
+        console.log(`✅ Found direct match: "${friendlyName}"`);
         return config.eventId || config.eventType;
       }
     }
     
-    console.log(`No mapping found for "${friendlyName}", using as-is`);
-    // Not found, return original (will fail gracefully with proper error message)
+    console.log(`⚠️ No mapping found for "${friendlyName}" in ${configs.length} events. Using as-is - event-handler will validate.`);
+    // Not found, return original (will fail gracefully with proper error message from event-handler)
     return friendlyName;
   } catch (error) {
     console.error('Error resolving event name:', error);

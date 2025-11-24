@@ -91,5 +91,17 @@ curl https://api.telegram.org/bot<YOUR_BOT_TOKEN>/getWebhookInfo
 1. Add your bot to a group and make it an admin (optional, but helps with reading messages).
 2. **Join Test**: Join with an alt account to trigger the welcome reward.
 3. **Check-in Test**: Type `/checkin`.
-4. **Config Test**: As an admin, change the reward event: `/config_checkin special_event_100`.
+4. **Config Test**: As an admin, change the reward event: `/config_checkin daily_checkin`.
 5. **Balance**: Type `/balance`.
+
+## ❓ Troubleshooting
+
+### "Event not configured" or "Invalid event data"
+- **Check for typos**: Ensure you configured the correct event ID or friendly name.
+  - Wrong: `/config_checkin dailing_checkin`
+  - Right: `/config_checkin daily_checkin`
+- **Verify Event**: Ensure the event is created and enabled in the Partner Portal.
+
+### "Domain not authorized"
+- **Bot Username**: Ensure your Telegram Bot Username is added to **Partner Portal → Settings → Profile → Authentication Methods**.
+- **Match**: The username must match exactly (e.g., `@MyBot`).
