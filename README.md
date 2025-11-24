@@ -28,25 +28,24 @@ Telegram Bot (Confirmation Message)
 
 ## 🛠 Setup & Deployment
 
-### 1. Create a Telegram Bot
-1. Open Telegram and message [@BotFather](https://t.me/BotFather).
-2. Send `/newbot` and follow the instructions.
-3. Copy the **HTTP API Token**.
+> 📖 **For detailed configuration guide, see [CONFIGURATION.md](./CONFIGURATION.md)**
 
-### 2. Create KV Namespace
-For configuration persistence, create a KV namespace:
-```bash
-npx wrangler kv:namespace create TELEGRAM_BOT_KV
-```
-Copy the `id` output and replace it in `wrangler.toml`.
+### Quick Start
 
-### 3. Configure the Worker
-1. Copy `wrangler.toml` and set your `BRAND_ID` (from Loyalteez Dashboard).
-2. Set your Telegram Bot Token as a secret:
+1. **Create Telegram Bot**: Message [@BotFather](https://t.me/BotFather), send `/newbot`, copy token
+2. **Set Secrets**:
    ```bash
    npx wrangler secret put TELEGRAM_BOT_TOKEN
-   # Paste your token when prompted
+   npx wrangler secret put WEBHOOK_SECRET  # Optional but recommended
    ```
+3. **Create KV Namespace**:
+   ```bash
+   npx wrangler kv:namespace create TELEGRAM_BOT_KV
+   # Copy the ID and update wrangler.toml
+   ```
+4. **Configure Variables**: Update `wrangler.toml` with your `BRAND_ID`
+5. **Deploy**: `npm run deploy`
+6. **Set Webhook**: See [CONFIGURATION.md](./CONFIGURATION.md) for webhook setup
 
 ### 4. Deploy
 ```bash

@@ -7,18 +7,35 @@ compatibility_date = "2023-10-30"
 pattern = "telegram-demo.loyalteez.app/*"
 zone_name = "loyalteez.app"
 
+# Optional: Service bindings for faster worker-to-worker communication (avoids 522 timeouts)
+# Uncomment these if you have access to the Loyalteez event-handler and pregeneration workers
+# [[services]]
+# binding = "EVENT_HANDLER"
+# service = "loyalteez-event-handler"
+#
+# [[services]]
+# binding = "PREGENERATION"
+# service = "loyalteez-pregeneration"
+
 [vars]
-# Configuration
-BRAND_ID = "your-brand-address" # Replace with your Brand Address (0x...)
+# Required: Your Loyalteez Brand Address (0x...)
+# Get this from Partner Portal → Settings → Account Overview
+BRAND_ID = "your-brand-address"
+
+# Optional: API URL (defaults to production)
 LOYALTEEZ_API_URL = "https://api.loyalteez.app"
-# Optional: Customize messages
+
+# Optional: Custom welcome message (reserved for future use)
 WELCOME_MESSAGE = "Welcome to the community! You've earned LTZ tokens."
 
 # Secrets (Set these via `wrangler secret put NAME`)
-# TELEGRAM_BOT_TOKEN = "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
-# WEBHOOK_SECRET = "optional-secret-to-verify-requests"
+# Required: TELEGRAM_BOT_TOKEN - Get from @BotFather
+# Optional: WEBHOOK_SECRET - Random string for webhook verification
+# See CONFIGURATION.md for details
 
-# KV Namespace for configuration (Run `npx wrangler kv:namespace create TELEGRAM_BOT_KV` to generate ID)
+# KV Namespace for configuration persistence
+# Run: npx wrangler kv:namespace create TELEGRAM_BOT_KV
+# Then update the ID below
 [[kv_namespaces]]
 binding = "TELEGRAM_BOT_KV"
 id = "e402f2939316466b973a644181686222" # Replace with your KV Namespace ID
