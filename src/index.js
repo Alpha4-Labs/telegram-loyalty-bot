@@ -17,11 +17,23 @@
 
 import { LoyalteezClient } from './utils/loyalteez.js';
 
+// CORS headers for health checks from browser
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     
-    // Health check endpoint (for testing)
+    // Handle CORS preflight
+    if (request.method === 'OPTIONS') {
+      return new Response(null, { headers: corsHeaders });
+    }
+    
+    // Health check endpoint (for testing) with CORS
     if (request.method === "GET" && url.pathname === "/health") {
       return new Response(
         JSON.stringify({
@@ -37,7 +49,7 @@ export default {
         }),
         {
           status: 200,
-          headers: { "Content-Type": "application/json" }
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
         }
       );
     }
